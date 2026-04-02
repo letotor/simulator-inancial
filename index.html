@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>FIRE Dashboard - Liberté Financière</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            background-attachment: fixed;
+        }
+
+        .glow {
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.15);
+        }
+
+        .pulse-glow {
+            animation: pulseGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(99, 102, 241, 0.2); }
+            50% { box-shadow: 0 0 30px rgba(99, 102, 241, 0.4); }
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #6366f1, #10b981);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .metric-card {
+            backdrop-filter: blur(10px);
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 12px;
+            padding: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        @media (min-width: 768px) {
+            .metric-card {
+                padding: 1.5rem;
+            }
+        }
+
+        .metric-card:hover {
+            border-color: rgba(99, 102, 241, 0.5);
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.1);
+        }
+
+        .strategy-card {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 12px;
+            padding: 1.25rem;
+        }
+
+        .strategy-card.active {
+            border-color: #6366f1;
+            background: rgba(99, 102, 241, 0.15);
+            box-shadow: 0 0 30px rgba(99, 102, 241, 0.3);
+            transform: scale(1.02);
+        }
+
+        .strategy-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(99, 102, 241, 0.4);
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: linear-gradient(to right, #6366f1, #10b981);
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #6366f1;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #6366f1;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+        }
+
+        .countdown-number {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #fbbf24, #10b981);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+            margin: 0.5rem 0;
+        }
+
+        @media (min-width: 768px) {
+            .countdown-number {
+                font-size: 4rem;
+            }
+        }
+
+        .freedom-card {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(99, 102, 241, 0.1));
+            border: 2px solid rgba(16, 185, 129, 0.3);
+            border-radius: 16px;
+            padding: 1.5rem;
+            animation: slideUp 0.8s ease-out;
+        }
+
+        @media (min-width: 768px) {
+            .freedom-card {
+                padding: 2rem;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        canvas {
+            display: block;
+            width: 100% !important;
+            height: auto !important;
+            max-width: 100%;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            margin: 1rem 0;
+        }
+
+        .label-small {
+            font-size: 0.75rem;
+            color: #cbd5e1 !important;
+        }
+
+        @media (min-width: 640px) {
+            .label-small {
+                font-size: 0.875rem;
+            }
+        }
+
+        /* Force textes blancs pour meilleur contraste */
+        p {
+            color: #f1f5f9 !important;
+        }
+
+        span {
+            color: #f1f5f9 !important;
+        }
+
+        label {
+            color: #e2e8f0 !important;
+        }
+
+        h1, h2, h3 {
+            color: #f1f5f9 !important;
+        }
+
+        .text-slate-300 {
+            color: #cbd5e1 !important;
+        }
+
+        .text-slate-400 {
+            color: #94a3b8 !important;
+        }
+
+        .text-slate-500 {
+            color: #64748b !important;
+        }
+
+        .text-white {
+            color: #f1f5f9 !important;
+        }
+
+        .grid-auto {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+            gap: 1rem;
+        }
+
+        @media (min-width: 768px) {
+            .grid-auto {
+                gap: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen p-4 md:p-8">
+        <div class="max-w-7xl mx-auto space-y-6 md:space-y-8">
+            
+            <!-- Header -->
+            <div class="space-y-2 text-center mb-8 md:mb-12">
+                <h1 class="text-3xl md:text-5xl font-black tracking-tight">
+                    <span class="gradient-text">FIRE</span> <span class="text-white">Dashboard</span>
+                </h1>
+                <p class="text-slate-400 text-sm md:text-lg">Calcule ton chemin vers la liberté financière 🚀</p>
+            </div>
+
+            <!-- Controls -->
+            <div class="metric-card glow space-y-6">
+                <h2 class="text-lg md:text-xl font-bold text-slate-200">⚙️ Tes Paramètres</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <label class="text-sm font-semibold text-slate-300">💰 Investissement</label>
+                            <span class="text-lg md:text-2xl font-black gradient-text" id="monthlyDisplay">300€</span>
+                        </div>
+                        <input type="range" id="monthlySlider" min="50" max="1000" value="300" step="50">
+                        <p class="text-xs text-slate-500">50€ → 1000€/mois</p>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <label class="text-sm font-semibold text-slate-300">💎 Capital initial</label>
+                            <span class="text-lg md:text-2xl font-black gradient-text" id="capitalDisplay">9.3k€</span>
+                        </div>
+                        <input type="range" id="capitalSlider" min="0" max="50000" value="9300" step="1000">
+                        <p class="text-xs text-slate-500">0€ → 50k€</p>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <label class="text-sm font-semibold text-slate-300">📈 Retour annuel</label>
+                            <span class="text-lg md:text-2xl font-black gradient-text" id="returnDisplay">8%</span>
+                        </div>
+                        <input type="range" id="returnSlider" min="4" max="15" value="8" step="0.5">
+                        <p class="text-xs text-slate-500">Conservative 4% → Agressif 15%</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3 Stratégies -->
+            <div class="space-y-4">
+                <h2 class="text-lg md:text-xl font-bold text-slate-200">🎯 Scénarios d'Investissement</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+                    <div class="strategy-card active" onclick="selectStrategy('conservative', event)">
+                        <div class="text-2xl md:text-3xl mb-2">🛡️</div>
+                        <h3 class="font-bold text-base md:text-lg mb-2">Conservative</h3>
+                        <p class="text-xs md:text-sm text-slate-400 mb-3">Risque faible, croissance stable</p>
+                        <div class="space-y-1">
+                            <p class="label-small text-slate-500">Rendement: <span class="text-indigo-400 font-bold">4-5%</span></p>
+                            <p class="label-small text-slate-500">Durée: <span class="text-amber-400 font-bold" id="conservativeDuration">—</span></p>
+                        </div>
+                    </div>
+
+                    <div class="strategy-card" onclick="selectStrategy('balanced', event)">
+                        <div class="text-2xl md:text-3xl mb-2">⚖️</div>
+                        <h3 class="font-bold text-base md:text-lg mb-2">Équilibrée</h3>
+                        <p class="text-xs md:text-sm text-slate-400 mb-3">Risque modéré, bonne croissance</p>
+                        <div class="space-y-1">
+                            <p class="label-small text-slate-500">Rendement: <span class="text-indigo-400 font-bold">8%</span></p>
+                            <p class="label-small text-slate-500">Durée: <span class="text-amber-400 font-bold" id="balancedDuration">—</span></p>
+                        </div>
+                    </div>
+
+                    <div class="strategy-card" onclick="selectStrategy('aggressive', event)">
+                        <div class="text-2xl md:text-3xl mb-2">🚀</div>
+                        <h3 class="font-bold text-base md:text-lg mb-2">Agressive</h3>
+                        <p class="text-xs md:text-sm text-slate-400 mb-3">Risque élevé, forte croissance</p>
+                        <div class="space-y-1">
+                            <p class="label-small text-slate-500">Rendement: <span class="text-indigo-400 font-bold">12%</span></p>
+                            <p class="label-small text-slate-500">Durée: <span class="text-amber-400 font-bold" id="aggressiveDuration">—</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Graphique Courbe -->
+            <div class="metric-card glow space-y-4">
+                <h2 class="text-lg md:text-xl font-bold text-slate-200">📊 Projection vers la Liberté</h2>
+                <div class="chart-container">
+                    <canvas id="projectionChart"></canvas>
+                </div>
+                <p class="text-xs md:text-sm text-slate-500 text-center">Objectif: €1000/mois de rente | Règle des 4%</p>
+            </div>
+
+            <!-- Countdown Liberté -->
+            <div class="freedom-card pulse-glow">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 text-center">
+                    <div>
+                        <p class="text-slate-400 text-xs md:text-sm uppercase font-bold mb-2">⏱️ Temps jusqu'à la liberté</p>
+                        <div class="countdown-number" id="yearsToFreedom">23</div>
+                        <p class="text-slate-400 text-xs md:text-sm">ans</p>
+                    </div>
+                    <div>
+                        <p class="text-slate-400 text-xs md:text-sm uppercase font-bold mb-2">🎂 Tu seras libre à</p>
+                        <div class="countdown-number" id="freedomAge">54</div>
+                        <p class="text-slate-400 text-xs md:text-sm">ans</p>
+                    </div>
+                    <div>
+                        <p class="text-slate-400 text-xs md:text-sm uppercase font-bold mb-2">💰 Capital accumulé</p>
+                        <div class="countdown-number" id="totalCapital">450</div>
+                        <p class="text-slate-400 text-xs md:text-sm">k€</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Milestones -->
+            <div class="metric-card space-y-4">
+                <h2 class="text-lg md:text-xl font-bold text-slate-200">🎯 Tes Milestones</h2>
+                <div class="grid-auto">
+                    <div class="bg-slate-900/50 rounded-lg p-3 md:p-4 text-center border border-slate-700/50">
+                        <p class="text-xl md:text-2xl font-black gradient-text">€50k</p>
+                        <p class="text-xs text-slate-400 mt-2" id="milestone50k">—</p>
+                    </div>
+                    <div class="bg-slate-900/50 rounded-lg p-3 md:p-4 text-center border border-slate-700/50">
+                        <p class="text-xl md:text-2xl font-black gradient-text">€100k</p>
+                        <p class="text-xs text-slate-400 mt-2" id="milestone100k">—</p>
+                    </div>
+                    <div class="bg-slate-900/50 rounded-lg p-3 md:p-4 text-center border border-slate-700/50">
+                        <p class="text-xl md:text-2xl font-black gradient-text">€250k</p>
+                        <p class="text-xs text-slate-400 mt-2" id="milestone250k">—</p>
+                    </div>
+                    <div class="bg-slate-900/50 rounded-lg p-3 md:p-4 text-center border border-slate-700/50">
+                        <p class="text-xl md:text-2xl font-black gradient-text">€500k</p>
+                        <p class="text-xs text-slate-400 mt-2" id="milestone500k">—</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Insights -->
+            <div class="grid-auto">
+                <div class="metric-card">
+                    <p class="text-slate-400 text-xs md:text-sm uppercase font-bold mb-3">💡 Rente/mois @ 50k€</p>
+                    <p class="text-2xl md:text-3xl font-black gradient-text" id="rent50k">166€</p>
+                    <p class="text-xs text-slate-500 mt-2">Règle des 4%/an</p>
+                </div>
+                <div class="metric-card">
+                    <p class="text-slate-400 text-xs md:text-sm uppercase font-bold mb-3">💡 Rente/mois @ 250k€</p>
+                    <p class="text-2xl md:text-3xl font-black gradient-text" id="rent250k">833€</p>
+                    <p class="text-xs text-slate-500 mt-2">Règle des 4%/an</p>
+                </div>
+                <div class="metric-card">
+                    <p class="text-slate-400 text-xs md:text-sm uppercase font-bold mb-3">💡 Rente/mois @ 500k€</p>
+                    <p class="text-2xl md:text-3xl font-black gradient-text" id="rent500k">1666€</p>
+                    <p class="text-xs text-slate-500 mt-2">Règle des 4%/an</p>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="text-center text-slate-500 text-xs md:text-sm pt-8 space-y-1">
+                <p>🔐 Tous les calculs sont locaux • Aucune donnée n'est envoyée</p>
+                <p>Utilise la règle des 4% (SWR) • Intérêts composés mensuels</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const currentAge = 31;
+        let selectedStrategy = 'balanced';
+
+        function formatCurrency(num, compact = false) {
+            if (compact && num >= 1000) {
+                return (num / 1000).toFixed(1).replace('.0', '') + 'k€';
+            }
+            return Math.round(num).toLocaleString('fr-FR') + '€';
+        }
+
+        function calculateFutureValue(monthly, capital, annualReturn, years) {
+            const monthlyReturn = annualReturn / 100 / 12;
+            let balance = capital;
+            for (let i = 0; i < years * 12; i++) {
+                balance = balance * (1 + monthlyReturn) + monthly;
+            }
+            return balance;
+        }
+
+        function calculateMonthlyIncome(principal) {
+            return (principal * 0.04) / 12;
+        }
+
+        function findYearsToTarget(monthly, capital, annualReturn, target) {
+            for (let year = 0; year <= 60; year++) {
+                const value = calculateFutureValue(monthly, capital, annualReturn, year);
+                const monthlyIncome = calculateMonthlyIncome(value);
+                if (monthlyIncome >= target) {
+                    return year;
+                }
+            }
+            return null;
+        }
+
+        function drawChart(monthly, capital, annualReturn) {
+            const canvas = document.getElementById('projectionChart');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = 300;
+
+            const width = canvas.width;
+            const height = canvas.height;
+            const padding = { top: 40, right: 30, bottom: 40, left: 50 };
+            const graphWidth = width - padding.left - padding.right;
+            const graphHeight = height - padding.top - padding.bottom;
+
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.4)';
+            ctx.fillRect(padding.left, padding.top, graphWidth, graphHeight);
+
+            // Calcul des valeurs
+            const years = 30;
+            const values = [];
+            let maxValue = 0;
+
+            for (let year = 0; year <= years; year++) {
+                const value = calculateFutureValue(monthly, capital, annualReturn, year);
+                values.push(value);
+                maxValue = Math.max(maxValue, value);
+            }
+
+            // Objectif rente
+            const targetCapital = 1000 * 12 / 0.04;
+
+            // Draw grid
+            ctx.strokeStyle = 'rgba(99, 102, 241, 0.1)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 5; i++) {
+                const y = padding.top + (i / 5) * graphHeight;
+                ctx.beginPath();
+                ctx.moveTo(padding.left, y);
+                ctx.lineTo(padding.left + graphWidth, y);
+                ctx.stroke();
+            }
+
+            // Draw axes
+            ctx.strokeStyle = 'rgba(99, 102, 241, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding.left, padding.top);
+            ctx.lineTo(padding.left, height - padding.bottom);
+            ctx.lineTo(width - padding.right, height - padding.bottom);
+            ctx.stroke();
+
+            // Draw curve
+            ctx.strokeStyle = '#6366f1';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            for (let i = 0; i < values.length; i++) {
+                const x = padding.left + (i / years) * graphWidth;
+                const y = height - padding.bottom - (values[i] / maxValue) * graphHeight;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+
+            // Draw milestone line
+            ctx.strokeStyle = '#10b981';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            const milestoneY = height - padding.bottom - (targetCapital / maxValue) * graphHeight;
+            ctx.beginPath();
+            ctx.moveTo(padding.left, milestoneY);
+            ctx.lineTo(width - padding.right, milestoneY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Labels
+            ctx.fillStyle = '#e2e8f0';
+            ctx.font = 'bold 13px system-ui';
+            ctx.textAlign = 'center';
+            for (let i = 0; i <= years; i += 5) {
+                const x = padding.left + (i / years) * graphWidth;
+                ctx.fillText(i, x, height - padding.bottom + 20);
+            }
+
+            ctx.textAlign = 'right';
+            ctx.fillStyle = '#cbd5e1';
+            ctx.font = 'bold 13px system-ui';
+            for (let i = 0; i <= 5; i++) {
+                const value = (i / 5) * maxValue / 1000;
+                const y = height - padding.bottom - (i / 5) * graphHeight;
+                ctx.fillText(value.toFixed(0) + 'k€', padding.left - 10, y + 5);
+            }
+
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#e2e8f0';
+            ctx.font = 'bold 14px system-ui';
+            ctx.fillText('Années', width / 2, height - 10);
+        }
+
+        function updateDashboard() {
+            const monthly = parseInt(document.getElementById('monthlySlider').value);
+            const capital = parseInt(document.getElementById('capitalSlider').value);
+            const returnRate = parseFloat(document.getElementById('returnSlider').value);
+
+            // Affichage paramètres
+            document.getElementById('monthlyDisplay').textContent = formatCurrency(monthly, true);
+            document.getElementById('capitalDisplay').textContent = formatCurrency(capital, true);
+            document.getElementById('returnDisplay').textContent = returnRate + '%';
+
+            // Stratégies
+            const strategies = {
+                conservative: 4.5,
+                balanced: 8,
+                aggressive: 12
+            };
+
+            Object.keys(strategies).forEach(strategy => {
+                const rate = strategies[strategy];
+                const years = findYearsToTarget(monthly, capital, rate, 1000);
+                document.getElementById(strategy + 'Duration').textContent = years ? years + ' ans' : '+30 ans';
+            });
+
+            // Calcul avec stratégie sélectionnée
+            const selectedRate = strategies[selectedStrategy];
+
+            // Graphique
+            drawChart(monthly, capital, selectedRate);
+
+            // Countdown
+            const yearsToFreedom = findYearsToTarget(monthly, capital, selectedRate, 1000) || 30;
+            const freedomAge = currentAge + yearsToFreedom;
+            const capitalAt = calculateFutureValue(monthly, capital, selectedRate, yearsToFreedom);
+
+            document.getElementById('yearsToFreedom').textContent = yearsToFreedom;
+            document.getElementById('freedomAge').textContent = freedomAge;
+            document.getElementById('totalCapital').textContent = Math.round(capitalAt / 100) / 10;
+
+            // Milestones
+            const milestones = [50000, 100000, 250000, 500000];
+            milestones.forEach(milestone => {
+                const yearsToMilestone = findYearsToTarget(monthly, capital, selectedRate, milestone * 0.04 / 12);
+                const id = 'milestone' + (milestone / 1000) + 'k';
+                if (document.getElementById(id)) {
+                    document.getElementById(id).textContent = yearsToMilestone ? (currentAge + yearsToMilestone) + ' ans' : '+30 ans';
+                }
+            });
+
+            // Rentes
+            const rents = [
+                { capital: 50000, id: 'rent50k' },
+                { capital: 250000, id: 'rent250k' },
+                { capital: 500000, id: 'rent500k' }
+            ];
+
+            rents.forEach(item => {
+                const monthlyRent = calculateMonthlyIncome(item.capital);
+                document.getElementById(item.id).textContent = formatCurrency(monthlyRent, false);
+            });
+        }
+
+        function selectStrategy(strategy, event) {
+            selectedStrategy = strategy;
+            document.querySelectorAll('.strategy-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            event.target.closest('.strategy-card').classList.add('active');
+            updateDashboard();
+        }
+
+        // Event listeners
+        document.getElementById('monthlySlider').addEventListener('input', updateDashboard);
+        document.getElementById('capitalSlider').addEventListener('input', updateDashboard);
+        document.getElementById('returnSlider').addEventListener('input', updateDashboard);
+
+        // Responsive chart redraw
+        window.addEventListener('resize', () => {
+            updateDashboard();
+        });
+
+        // Initialisation
+        updateDashboard();
+    </script>
+</body>
+</html>
